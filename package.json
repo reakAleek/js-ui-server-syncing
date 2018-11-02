@@ -19,7 +19,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "yarn run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -32,6 +34,7 @@
   ],
   "devDependencies": {
     "flow-bin": "^0.85.0",
+    "gh-pages": "^2.0.1",
     "redux-devtools": "^3.4.1"
   }
 }

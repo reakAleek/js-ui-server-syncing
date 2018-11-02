@@ -20,8 +20,11 @@ import {filter, last, switchMap, withLatestFrom} from "rxjs/operators";
  *
  * If the passed entity is has an ID other than -1, then the entity is simply sent via PATCH
  * to the server.
-
  */
+
+const SUBJECT_KEY = 0;
+const ID_KEY = 1;
+
 class RequestQueueService {
 
     _uuidMap: { [UUID]: [BehaviorSubject<Entity | false>, number] } = {};
@@ -34,15 +37,13 @@ class RequestQueueService {
         patch: (entity: Entity) => Observable<Entity>
     ): Observable<Entity | false> {
         return Observable.create(observer => {
-
             if (!this._hasPersistedId(entity)
             && !this._isRegistered(entity)) {
-
                 this._uuidMap[entity.uuid] = [new BehaviorSubject<Entity | false>(false), NOT_YET_PERSISTED];
                 post(entity).pipe(
-                    withLatestFrom(this._uuidMap[entity.uuid][0].asObservable()),
+                    withLatestFrom(this._uuidMap[entity.uuid][SUBJECT_KEY].asObservable()),
                     switchMap(([postEntity, patchEntity]) => {
-                        this._uuidMap[entity.uuid][1] = postEntity.id;
+                        this._uuidMap[entity.uuid][ID_KEY] = postEntity.id;
                         return (patchEntity)
                             ? concat(of(postEntity), patch({ ...patchEntity, id: postEntity.id }))
                             : of(postEntity)
@@ -54,31 +55,24 @@ class RequestQueueService {
                     observer.next(entity);
                     observer.complete();
                 })
-
             } else if (!this._hasPersistedId(entity)
                    && this._isRegistered(entity)
                    && this._isPersistedOnServer(entity)) {
-
-                patch({...entity, id: this._uuidMap[entity.uuid][1]}).subscribe(p => {
+                patch({...entity, id: this._uuidMap[entity.uuid][ID_KEY]}).subscribe(p => {
                     observer.next(p);
                     observer.complete();
                 })
-
             } else if (!this._hasPersistedId(entity)
                    && this._isRegistered(entity)
                    && !this._isPersistedOnServer(entity)) {
-
-                this._uuidMap[entity.uuid][0].next(entity);
+                this._uuidMap[entity.uuid][SUBJECT_KEY].next(entity);
                 observer.next(false);
                 observer.complete();
-
             } else {
-
                 patch(entity).subscribe(entity => {
                     observer.next(entity);
                     observer.complete();
                 });
-
             }
         });
     }

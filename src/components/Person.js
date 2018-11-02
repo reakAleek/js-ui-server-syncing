@@ -6,7 +6,6 @@ import _ from "lodash";
 
 const handleSubmit = (ev, addPerson, isLast) => {
     ev.preventDefault();
-
     if (isLast) {
         addPerson();
     }
@@ -27,8 +26,7 @@ const Person = ({ person, updatePersonName, createOrUpdate, addPerson, isLast })
                            placeholder={'Name'}
                            value={person.name}
                            onChange={ (ev) => {updatePersonName(ev.target.value)} }
-                           autoFocus={true}
-                    />
+                           autoFocus={true} />
                 </p>
             </div>
         </form>
