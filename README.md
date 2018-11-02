@@ -1,6 +1,6 @@
 # Javascript​ ​UI​ ​↔​ ​Server​ ​syncing
 
-[ONLINE DEMO](https://reakaleek.github.io/js-ui-server-syncing/)
+# [ONLINE DEMO](https://reakaleek.github.io/js-ui-server-syncing/)
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 ## Syncing Logic
