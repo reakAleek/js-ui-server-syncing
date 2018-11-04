@@ -1,11 +1,7 @@
 // @flow
 import React from 'react';
 import {connect} from "react-redux";
-import {
-    addPersonAction,
-    onUpdatePersonAction, removePersonAction,
-    postPersonAction,
-} from "../+store/actions";
+import {addPersonAction, onUpdatePersonAction, postPersonAction, removePersonAction,} from "../+store/actions";
 import _ from "lodash";
 
 const handleSubmit = (ev, addPerson, isLast) => {
@@ -34,7 +30,9 @@ const Person = ({ person, updatePersonName, createOrUpdate, addPerson, isLast, r
                 </p>
                 <p className="control">
                     <button type="button" onClick={ () => removePerson() } style={{width: '2.7rem'}} className="button is-danger" tabIndex={-1}>
-                        -
+                        <span className="icon">
+                            &#10005;
+                        </span>
                     </button>
                 </p>
             </div>

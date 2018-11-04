@@ -5,16 +5,16 @@ import type {AppState} from "./model";
 import {NOT_YET_PERSISTED} from "./model";
 import type {
     FetchPersonsSuccessAction,
-    RemovePersonAction,
     PostPersonSuccessAction,
+    RemovePersonAction,
     SetSyncStatusAction,
     UpdatePersonAction
 } from "./actions";
 import {
     ADD_PERSON,
     FETCH_PERSONS_SUCCESS,
-    REMOVE_PERSON,
     POST_PERSON_SUCCESS,
+    REMOVE_PERSON,
     SET_SYNC_STATUS,
     UPDATE_PERSON
 } from "./actions";

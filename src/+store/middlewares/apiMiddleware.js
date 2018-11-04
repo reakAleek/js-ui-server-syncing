@@ -28,11 +28,12 @@ import {
 } from "../actions";
 import PersonService from "../../services/personService";
 import _ from "lodash";
+import {map} from "rxjs/operators";
 import ActionProcrastinator from "../util/actionProcrastinator";
 
 const apiMiddleware = (personService: PersonService) => (store: Store) => {
 
-    const actionProcrastinator = new ActionProcrastinator(store);
+    const actionProcrastinator = new ActionProcrastinator();
 
     return (next) => (action: Action) => {
 
@@ -48,7 +49,14 @@ const apiMiddleware = (personService: PersonService) => (store: Store) => {
 
             case POST_PERSON: {
                 const person = (action: PostPersonAction).person;
-                actionProcrastinator.put(person.uuid, personService.post(person), postPersonSuccessAction, 'person');
+                actionProcrastinator.put(
+                    person.uuid,
+                    personService.post(person).pipe(map(p => postPersonSuccessAction({...p, uuid: person.uuid }))),
+                    'person',
+                    'person.id'
+                ).asObservable().subscribe(action => {
+                    store.dispatch(action);
+                });
                 break;
             }
 

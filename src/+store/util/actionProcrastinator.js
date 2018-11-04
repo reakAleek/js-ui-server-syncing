@@ -1,112 +1,101 @@
 // @flow
-import {Observable, Subject} from "rxjs";
-import {Action, Store} from "redux";
+import {merge, Observable, Subject} from "rxjs";
+import {Action} from "redux";
 import type {Entity, UUID} from "../model";
-import {buffer, map, withLatestFrom} from "rxjs/operators";
+import {buffer, filter, map, take, tap, withLatestFrom} from "rxjs/operators";
 import _ from "lodash";
 
 /**
- * Basically, this class accepts an observable and an actionCreator.
- * Once the observable is emitted, the output of the observable is
- * taken and passed to the actionCreator, which in turn is dispatched
- * to the store. As long as the observable has not emitted yet, other
- * actions can be pushed into the action subject of the object.
- * As soon as the passed observable emits, the last action of the subject
- * is taken and merged with the ID taken from the buffer.
- * This action is then dispatched to the store.
+ * Basically, this class creates an observable of type Observable<Action>
+ * which can be subscribed. As long as this observable has not yet emitted
+ * an action, follow-up actions can be pushed into the actionSubject.
+ * However, only the last action that has been pushed is included in the
+ * stream of the initial observable. The payload of the follow-up action
+ * adopts the ID (or any given path) of the payload of the initial action
+ * payload and is also emitted by the observable.
  */
 export class ActionPostponeObject {
 
-    buffer$ = new Subject<number>();
+    buffer$ = new Subject<any>();
     actionSubject$ = new Subject<Action>();
 
     constructor(
-        deleteEntryCallback: () => void,
-        store: Store,
-        uuid: UUID,
-        obs$: Observable<Entity>,
-        successActionCreator: (entity: Entity) => Action,
-        entityIdentifier: string = 'payload'
+        observable$: Observable<Action>,
+        payloadPath: string = 'payload',
+        mergeObjectPath: string = 'payload.id'
     ) {
-        this.deleteEntryCallback = deleteEntryCallback;
-        this.store = store;
-        this.uuid = uuid;
-        this._initActionSubject(entityIdentifier);
-        this._initObservable(uuid, obs$, successActionCreator);
+        this.followUpObservable = this._initFollowUpObservable(payloadPath, mergeObjectPath);
+        this.initialObservable$ = this._initObservable(observable$, mergeObjectPath);
     }
 
-    _initActionSubject = (entityIdentifier): void => {
+    asObservable = (): Observable<Action> => {
+        return merge(
+            this.initialObservable$,
+            this.followUpObservable,
+        ).pipe(filter(action => !!action));
+    };
+
+    _initFollowUpObservable = (
+        payloadPath: string,
+        mergeObjectPath: string
+    ): Observable<Action> => {
         return this.actionSubject$.asObservable()
             .pipe(
                 buffer(this.buffer$),
                 map(actions => _.last(actions)),
                 withLatestFrom(this.buffer$),
-                map(([action, id]) => {
-                    if (action) {
-                        return {
-                            ...action,
-                            [entityIdentifier]: {...action[entityIdentifier], id}
-                        };
-                    }
-                    else {
-                        return false;
-                    }
-                })
-            ).subscribe(action => {
-                if (action) {
-                    this.store.dispatch(action);
-                }
-            });
+                map(([action, mergeObject]) => {
+                    return (action)
+                        ? _.setWith(_.clone(action), mergeObjectPath, mergeObject)
+                        : false;
+                }),
+                take(1)
+            );
     };
 
-    _initObservable = (uuid: UUID, obs$: Observable<Entity>, successActionCreator): void => {
-        obs$.subscribe(entity => {
-            this.store.dispatch(successActionCreator({...entity, uuid }));
-            this.buffer$.next(entity.id);
-            this.deleteEntryCallback();
-        });
+    _initObservable = (
+        obs$: Observable<Action>,
+        mergeObjectPath: string
+    ): Observable<Action> => {
+        return obs$.pipe(
+            tap(action  => { this.buffer$.next(_.get(action, mergeObjectPath)); }),
+            take(1)
+        );
     };
 
     push = (action: Action) => {
         this.actionSubject$.next(action);
-    }
+    };
 }
 
 /*
  * This class manages ActionPostponeObjects by storing them in a map.
  * Once the ActionPostponeObject is finished with its task, the entry
  * is deleted from the map again.
- * The UUID is used to assign follow-up actions to a running action.
+ * The UUID is used to assign follow-up actions to a specific running action.
  */
 export class ActionProcrastinator {
 
     _uuidMap: {[UUID]: ActionPostponeObject} = {};
 
-    constructor(store: Store) {
-        this.store = store;
-    }
-
     put = (
         uuid: UUID,
         obs$: Observable<Entity>,
-        successActionCreator: (entity: Entity) => Action,
-        entityIdentifier: string = 'payload'
-    ): void => {
-        if (!this.hasUUID(uuid)) {
-            this._uuidMap[uuid] = new ActionPostponeObject(
-                () => {
-                    this._remove(uuid)
-                },
-                this.store,
-                uuid,
-                obs$,
-                successActionCreator,
-                entityIdentifier
-            );
-        }
+        payloadPath: string = 'payload',
+        mergeObjectPath: string = 'payload.id'
+    ): ActionPostponeObject => {
+        this._uuidMap[uuid] = new ActionPostponeObject(
+            obs$.pipe(tap(() => { this._remove(uuid) })),
+            payloadPath,
+            mergeObjectPath
+        );
+        return this.get(uuid);
     };
 
-    pushAction = (uuid: UUID, action: Action): void => {
+    pushAction = (
+        uuid: UUID,
+        action: Action
+    ): void => {
         if (this.hasUUID(uuid)) {
             this.get(uuid).push(action);
         } else {
@@ -124,7 +113,7 @@ export class ActionProcrastinator {
 
     _remove = (uuid: UUID): void => {
         delete this._uuidMap[uuid];
-    }
+    };
 }
 
 export default ActionProcrastinator;

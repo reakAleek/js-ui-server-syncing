@@ -16,7 +16,6 @@ const http = new MockHttpApi();
 const personService = new PersonService(http);
 
 const store = createStore(reducer, applyMiddleware(apiMiddleware(personService), syncStatusMiddleware));
-//store.dispatch(fetchPersonsAction());
 
 ReactDOM.render(
     <Provider store={store}><App /></Provider>,

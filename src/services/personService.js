@@ -1,7 +1,7 @@
 // @flow
 import type {Person} from "../+store/model";
 import MockHttpApi from "./mockHttpApi";
-import { Observable } from "rxjs";
+import {Observable} from "rxjs";
 
 export default class PersonService {
 
