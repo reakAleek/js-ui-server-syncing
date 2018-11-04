@@ -7,7 +7,7 @@ import {
     FETCH_PERSONS_SUCCESS, PATCH_PERSON, PATCH_PERSON_SUCCESS,
     SAVE_PERSON,
     SAVE_PERSON_SUCCESS,
-    setSyncStatusAction, UPDATE_PERSON
+    setSyncStatusAction,
 } from "../actions";
 import {debounceTime} from "rxjs/operators";
 
