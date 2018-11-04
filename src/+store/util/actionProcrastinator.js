@@ -6,7 +6,14 @@ import {buffer, map, withLatestFrom} from "rxjs/operators";
 import _ from "lodash";
 
 /**
- *
+ * Basically, this class accepts an observable and an actionCreator.
+ * Once the observable is emitted, the output of the observable is
+ * taken and passed to the actionCreator, which in turn is dispatched
+ * to the store. As long as the observable has not emitted yet, other
+ * actions can be pushed into the action queue of the object.
+ * As soon as the passed observable emits, the last action of the queue
+ * is taken and merged with the ID of the output observable.
+ * This action is then dispatched to the store.
  */
 export class ActionPostponeObject {
 
@@ -14,13 +21,14 @@ export class ActionPostponeObject {
     actionQueue$ = new Subject<Action>();
 
     constructor(
-        uuidMap: {[UUID]: ActionPostponeObject},
-        store: Store, uuid: UUID,
+        deleteEntryCallback: () => void,
+        store: Store,
+        uuid: UUID,
         post$: Observable<Entity>,
         successActionCreator: (entity: Entity) => Action,
         entityIdentifier: string = 'payload'
     ) {
-        this.uuidMap = uuidMap;
+        this.deleteEntryCallback = deleteEntryCallback;
         this.store = store;
         this.uuid = uuid;
         this.post$ = post$;
@@ -54,7 +62,7 @@ export class ActionPostponeObject {
         this.post$.subscribe(entity => {
             this.store.dispatch(this.successActionCreator({...entity, uuid: this.uuid }));
             this.buffer$.next(entity.id);
-            delete this.uuidMap[this.uuid];
+            this.deleteEntryCallback();
         });
     };
 
@@ -63,6 +71,12 @@ export class ActionPostponeObject {
     }
 }
 
+/*
+ * This class manages ActionPostponeObjects by storing them in a map.
+ * Once the ActionPostponeObject is finished with its task, the entry
+ * is deleted from the map again.
+ * The UUID is used to assign follow-up actions to a running action.
+ */
 export class ActionProcrastinator {
 
     _uuidMap: {[UUID]: ActionPostponeObject} = {};
@@ -76,10 +90,10 @@ export class ActionProcrastinator {
         obs$: Observable<Entity>,
         successActionCreator: (entity: Entity) => Action,
         entityIdentifier: string = 'payload'
-    ): ActionPostponeObject => {
+    ): void => {
         if (!this.hasUUID(uuid)) {
             this._uuidMap[uuid] = new ActionPostponeObject(
-                this._uuidMap,
+                () => { this._remove(uuid) },
                 this.store,
                 uuid,
                 obs$,
@@ -93,7 +107,7 @@ export class ActionProcrastinator {
         if (this.hasUUID(uuid)) {
             this._get(uuid).push(action);
         } else {
-            throw Error(`Cannot find UUID: ${uuid}`);
+            throw Error(`Cannot find ActionPostponeObject with the UUID: ${uuid}`);
         }
     };
 
@@ -104,6 +118,10 @@ export class ActionProcrastinator {
     _get = (uuid: UUID): ActionPostponeObject => {
         return this._uuidMap[uuid];
     };
+
+    _remove = (uuid: UUID): void => {
+        delete this._uuidMap[uuid];
+    }
 }
 
 export default ActionProcrastinator;
