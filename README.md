@@ -8,11 +8,14 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Syncing Logic
-The syncing logic can be found in the the file [actionProcrastinator.js](src/+store/util/actionProcrastinator.js) 
+The syncing logic can be found in the the file [src/+store/util/actionProcrastinator.js](src/+store/util/actionProcrastinator.js) 
 including description as comment.
+The usage of the ActionProcrastinor can be found in [src/+store/middlewares/apiMiddleware.js](src/+store/middlewares/apiMiddleware.js).
+
+## Example test case
+The ​example​ ​test​ ​case​ ​in​ ​JS​ ​that​ ​reproduces​ ​the​ explained ​issue​ ​can be found in [src/test.js](src/test.js)
 
 ## Available Scripts
-
 In the project directory, you can run:
 
 ### `npm start`
