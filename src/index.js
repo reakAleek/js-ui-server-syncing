@@ -7,11 +7,15 @@ import * as serviceWorker from './serviceWorker';
 import {Provider} from "react-redux";
 import {applyMiddleware, createStore} from "redux";
 import {reducer} from "./+store/reducer";
-import apiMiddleware from "./+store/middlewares/apiMiddleware";
 import syncStatusMiddleware from "./+store/middlewares/syncStatusMiddleware";
-//import {fetchPersonsAction} from "./+store/actions";
+import apiMiddleware from "./+store/middlewares/apiMiddleware";
+import MockHttpApi from "./services/mockHttpApi";
+import PersonService from "./services/personService";
 
-const store = createStore(reducer, applyMiddleware(apiMiddleware, syncStatusMiddleware));
+const http = new MockHttpApi();
+const personService = new PersonService(http);
+
+const store = createStore(reducer, applyMiddleware(apiMiddleware(personService), syncStatusMiddleware));
 //store.dispatch(fetchPersonsAction());
 
 ReactDOM.render(

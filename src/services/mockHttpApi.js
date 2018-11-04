@@ -1,5 +1,5 @@
 // @flow
-import {Observable, of} from "rxjs";
+import {Observable, of, throwError} from "rxjs";
 import {delay, take} from "rxjs/operators";
 import type {Person} from "../+store/model";
 import _ from 'lodash';
@@ -20,6 +20,24 @@ export default class MockHttpApi {
         return of(persons).pipe(take(1), delay(500))
     };
 
+    delete = (url: string, person: Person): Observable<Person> => {
+
+        if (person.id === -1) {
+            return throwError('ID cannot be -1');
+        }
+
+        this.persons = this.persons.filter(p => p.id !== person.id);
+        console.info(
+            '%c[DELETE]\t',
+            'color:green;',
+            'request:',
+            _.omit(person, ['uuid']),
+            'response:',
+            _.omit(person, ['uuid'])
+        );
+        return of(person).pipe(delay(1000));
+    };
+
     post = (url: string, person: Person): Observable<Person>  => {
         return Observable.create((observer) => {
             setTimeout(() => {
@@ -36,7 +54,7 @@ export default class MockHttpApi {
                 );
                 observer.next(_.omit(personWithNewId, ['uuid']));
                 observer.complete();
-            }, 1000)
+            }, 2000)
         });
     };
 
@@ -71,7 +89,7 @@ export default class MockHttpApi {
                 );
                 observer.next(_.omit(updatePerson, ['uuid']));
                 observer.complete();
-            }, 500);
+            }, 1000);
         });
     };
 }

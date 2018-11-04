@@ -1,7 +1,11 @@
 // @flow
 import React from 'react';
 import {connect} from "react-redux";
-import {addPersonAction, savePersonAction, updatePersonAction} from "../+store/actions";
+import {
+    addPersonAction,
+    onUpdatePersonAction, removePersonAction,
+    savePersonAction,
+} from "../+store/actions";
 import _ from "lodash";
 
 const handleSubmit = (ev, addPerson, isLast) => {
@@ -11,14 +15,14 @@ const handleSubmit = (ev, addPerson, isLast) => {
     }
 };
 
-const Person = ({ person, updatePersonName, createOrUpdate, addPerson, isLast }) => (
+const Person = ({ person, updatePersonName, createOrUpdate, addPerson, isLast, removePerson }) => (
     <div className="card person-card">
         <form className="card-content" onSubmit={(ev) => handleSubmit(ev, addPerson, isLast)}>
             <div className="field has-addons">
                 <p className="control">
-                    <button style={{width: '2.7rem'}} className="button is-static" tabIndex={-1}>
+                    <span type="button" style={{width: '2.7rem'}} className="button is-static" tabIndex={-1}>
                         { person.id }
-                    </button>
+                    </span>
                 </p>
                 <p className="control is-expanded">
                     <input type="text"
@@ -28,15 +32,21 @@ const Person = ({ person, updatePersonName, createOrUpdate, addPerson, isLast })
                            onChange={ (ev) => {updatePersonName(ev.target.value)} }
                            autoFocus={true} />
                 </p>
+                <p className="control">
+                    <button type="button" onClick={ () => removePerson() } style={{width: '2.7rem'}} className="button is-danger" tabIndex={-1}>
+                        -
+                    </button>
+                </p>
             </div>
         </form>
     </div>
 );
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    updatePersonName: (name) => dispatch(updatePersonAction({ ...ownProps.person , name })),
+    updatePersonName: (name) => dispatch(onUpdatePersonAction({ ...ownProps.person , name })),
     createOrUpdate: (person) => dispatch(savePersonAction(person)),
-    addPerson: () => dispatch(addPersonAction())
+    addPerson: () => dispatch(addPersonAction()),
+    removePerson: () => dispatch(removePersonAction(ownProps.person))
 });
 
 const mapStateToProps = (state, ownProps) => ({

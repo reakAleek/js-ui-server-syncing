@@ -7,7 +7,7 @@ import {debounceTime} from "rxjs/operators";
 const syncStatusMiddleware = (store: Store) => {
 
     const syncStatus = new Subject<boolean>();
-    syncStatus.asObservable().pipe(debounceTime(500)).subscribe(isSyncing => {
+    syncStatus.asObservable().pipe(debounceTime(750)).subscribe(isSyncing => {
         store.dispatch(setSyncStatusAction(isSyncing));
     });
 

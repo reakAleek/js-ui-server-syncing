@@ -5,10 +5,10 @@ import type {AppState} from "../+store/model";
 
 const ActionBar = ({ addPerson, fetch, isSyncing }) => (
     <div className="field is-grouped">
-        <p className="control" style={{ width: '50%'}}>
+        <p className="control is-expanded">
             <button className="button is-fullwidth is-outlined is-success" onClick={() => addPerson()}>Add Person</button>
         </p>
-        <p className="control" style={{ width: '50%'}}>
+        <p className="control is-expanded">
             <button className={`button is-fullwidth is-info is-outlined ${ isSyncing ? '' : '' } `}
                     disabled={isSyncing}
                     onClick={() => !isSyncing && fetch() }>

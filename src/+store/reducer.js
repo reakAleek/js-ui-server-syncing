@@ -5,12 +5,19 @@ import type {AppState} from "./model";
 import {NOT_YET_PERSISTED} from "./model";
 import type {
     FetchPersonsSuccessAction,
+    RemovePersonAction,
     SavePersonSuccessAction,
     SetSyncStatusAction,
     UpdatePersonAction
 } from "./actions";
-import {ADD_PERSON, FETCH_PERSONS_SUCCESS, SAVE_PERSON_SUCCESS, SET_SYNC_STATUS, UPDATE_PERSON} from "./actions";
-
+import {
+    ADD_PERSON,
+    FETCH_PERSONS_SUCCESS,
+    REMOVE_PERSON,
+    SAVE_PERSON_SUCCESS,
+    SET_SYNC_STATUS,
+    UPDATE_PERSON
+} from "./actions";
 
 const initialState: AppState = {
     isSyncing: false,
@@ -39,6 +46,15 @@ export const reducer = (state: AppState = initialState, action: Action) => {
                             : oldPerson
                     )
             }
+        }
+
+        case REMOVE_PERSON: {
+            const deletedPerson = (action: RemovePersonAction).person;
+            const uuid = deletedPerson.uuid;
+            return {
+                ...state,
+                persons: state.persons.filter(p => p.uuid !== uuid)
+            };
         }
 
         case ADD_PERSON: {

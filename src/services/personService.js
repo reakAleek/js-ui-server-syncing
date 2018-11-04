@@ -1,22 +1,16 @@
 // @flow
 import type {Person} from "../+store/model";
-import RequestQueueService from "./requestQueueService";
 import MockHttpApi from "./mockHttpApi";
-import {Observable} from "rxjs";
+import { Observable } from "rxjs";
 
 export default class PersonService {
 
-    constructor(http: MockHttpApi, requestQueue: RequestQueueService) {
+    constructor(http: MockHttpApi) {
         this.http = http;
-        this.requestQueue = requestQueue;
     }
 
     fetchAll = (): Observable<Person[]> => {
         return this.http.get('/api/persons');
-    };
-
-    save = (person: Person): Observable<Person | false> => {
-        return this.requestQueue.postOrPatch(person, this.post, this.patch);
     };
 
     post = (person: Person): Observable<Person> => {
@@ -24,6 +18,10 @@ export default class PersonService {
     };
 
     patch = (person: Person): Observable<Person> => {
-        return this.http.patch('/api/persons/' + person.id, person);
-    }
+        return this.http.patch('/api/persons', person);
+    };
+
+    delete = (person: Person): Observable<Person> => {
+      return this.http.delete('/api/persons', person);
+    };
 }
