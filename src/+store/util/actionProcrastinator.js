@@ -10,30 +10,33 @@ import _ from "lodash";
  * Once the observable is emitted, the output of the observable is
  * taken and passed to the actionCreator, which in turn is dispatched
  * to the store. As long as the observable has not emitted yet, other
- * actions can be pushed into the action queue of the object.
- * As soon as the passed observable emits, the last action of the queue
- * is taken and merged with the ID of the output observable.
+ * actions can be pushed into the action subject of the object.
+ * As soon as the passed observable emits, the last action of the subject
+ * is taken and merged with the ID taken from the buffer.
  * This action is then dispatched to the store.
  */
 export class ActionPostponeObject {
 
     buffer$ = new Subject<number>();
-    actionQueue$ = new Subject<Action>();
+    actionSubject$ = new Subject<Action>();
 
     constructor(
         deleteEntryCallback: () => void,
         store: Store,
         uuid: UUID,
-        post$: Observable<Entity>,
+        obs$: Observable<Entity>,
         successActionCreator: (entity: Entity) => Action,
         entityIdentifier: string = 'payload'
     ) {
         this.deleteEntryCallback = deleteEntryCallback;
         this.store = store;
         this.uuid = uuid;
-        this.post$ = post$;
-        this.successActionCreator = successActionCreator;
-        this.actionQueue$.asObservable()
+        this._initActionSubject(entityIdentifier);
+        this._initObservable(uuid, obs$, successActionCreator);
+    }
+
+    _initActionSubject = (entityIdentifier): void => {
+        return this.actionSubject$.asObservable()
             .pipe(
                 buffer(this.buffer$),
                 map(actions => _.last(actions)),
@@ -49,25 +52,23 @@ export class ActionPostponeObject {
                         return false;
                     }
                 })
-            )
-            .subscribe(action => {
+            ).subscribe(action => {
                 if (action) {
                     this.store.dispatch(action);
                 }
             });
-        this._init();
-    }
+    };
 
-    _init = (): void => {
-        this.post$.subscribe(entity => {
-            this.store.dispatch(this.successActionCreator({...entity, uuid: this.uuid }));
+    _initObservable = (uuid: UUID, obs$: Observable<Entity>, successActionCreator): void => {
+        obs$.subscribe(entity => {
+            this.store.dispatch(successActionCreator({...entity, uuid }));
             this.buffer$.next(entity.id);
             this.deleteEntryCallback();
         });
     };
 
     push = (action: Action) => {
-        this.actionQueue$.next(action);
+        this.actionSubject$.next(action);
     }
 }
 
@@ -93,7 +94,9 @@ export class ActionProcrastinator {
     ): void => {
         if (!this.hasUUID(uuid)) {
             this._uuidMap[uuid] = new ActionPostponeObject(
-                () => { this._remove(uuid) },
+                () => {
+                    this._remove(uuid)
+                },
                 this.store,
                 uuid,
                 obs$,
@@ -105,7 +108,7 @@ export class ActionProcrastinator {
 
     pushAction = (uuid: UUID, action: Action): void => {
         if (this.hasUUID(uuid)) {
-            this._get(uuid).push(action);
+            this.get(uuid).push(action);
         } else {
             throw Error(`Cannot find ActionPostponeObject with the UUID: ${uuid}`);
         }
@@ -115,7 +118,7 @@ export class ActionProcrastinator {
         return uuid in this._uuidMap;
     };
 
-    _get = (uuid: UUID): ActionPostponeObject => {
+    get = (uuid: UUID): ActionPostponeObject => {
         return this._uuidMap[uuid];
     };
 

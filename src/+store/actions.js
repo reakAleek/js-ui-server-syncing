@@ -28,24 +28,24 @@ export const fetchPersonsSuccessAction = (persons: Person[]): FetchPersonsSucces
  * SAVE PERSON
  *********************************************/
 
-export const SAVE_PERSON = 'SAVE_PERSON';
-export type SavePersonAction = {
-    type: SAVE_PERSON,
+export const POST_PERSON = 'POST_PERSON';
+export type PostPersonAction = {
+    type: POST_PERSON,
     person: Person
 }
-export const savePersonAction =
-    (person: Person): SavePersonAction => ({
-        type: SAVE_PERSON, person
+export const postPersonAction =
+    (person: Person): PostPersonAction => ({
+        type: POST_PERSON, person
     });
 
-export const SAVE_PERSON_SUCCESS = 'SAVE_PERSON_SUCCESS';
-export type SavePersonSuccessAction = {
-    type: SAVE_PERSON_SUCCESS,
+export const POST_PERSON_SUCCESS = 'POST_PERSON_SUCCESS';
+export type PostPersonSuccessAction = {
+    type: POST_PERSON_SUCCESS,
     person: Person
 }
-export const savePersonSuccessAction =
-    (person: Person): SavePersonSuccessAction => ({
-        type: SAVE_PERSON_SUCCESS, person
+export const postPersonSuccessAction =
+    (person: Person): PostPersonSuccessAction => ({
+        type: POST_PERSON_SUCCESS, person
     });
 
 

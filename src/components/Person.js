@@ -4,7 +4,7 @@ import {connect} from "react-redux";
 import {
     addPersonAction,
     onUpdatePersonAction, removePersonAction,
-    savePersonAction,
+    postPersonAction,
 } from "../+store/actions";
 import _ from "lodash";
 
@@ -44,7 +44,7 @@ const Person = ({ person, updatePersonName, createOrUpdate, addPerson, isLast, r
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
     updatePersonName: (name) => dispatch(onUpdatePersonAction({ ...ownProps.person , name })),
-    createOrUpdate: (person) => dispatch(savePersonAction(person)),
+    createOrUpdate: (person) => dispatch(postPersonAction(person)),
     addPerson: () => dispatch(addPersonAction()),
     removePerson: () => dispatch(removePersonAction(ownProps.person))
 });

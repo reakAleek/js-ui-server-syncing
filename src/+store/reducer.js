@@ -6,7 +6,7 @@ import {NOT_YET_PERSISTED} from "./model";
 import type {
     FetchPersonsSuccessAction,
     RemovePersonAction,
-    SavePersonSuccessAction,
+    PostPersonSuccessAction,
     SetSyncStatusAction,
     UpdatePersonAction
 } from "./actions";
@@ -14,7 +14,7 @@ import {
     ADD_PERSON,
     FETCH_PERSONS_SUCCESS,
     REMOVE_PERSON,
-    SAVE_PERSON_SUCCESS,
+    POST_PERSON_SUCCESS,
     SET_SYNC_STATUS,
     UPDATE_PERSON
 } from "./actions";
@@ -35,8 +35,8 @@ export const reducer = (state: AppState = initialState, action: Action) => {
             };
         }
 
-        case SAVE_PERSON_SUCCESS: {
-            const newPerson = (action: SavePersonSuccessAction).person;
+        case POST_PERSON_SUCCESS: {
+            const newPerson = (action: PostPersonSuccessAction).person;
             return {
                 ...state,
                 persons: state.persons

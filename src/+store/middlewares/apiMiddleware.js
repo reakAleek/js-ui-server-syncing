@@ -3,9 +3,10 @@ import {Action, Store} from "redux";
 import type {
     DeletePersonAction,
     OnUpdatePersonAction,
-    PatchPersonAction, RemovePersonAction,
-    SavePersonAction,
-    SavePersonSuccessAction,
+    PatchPersonAction,
+    PostPersonAction,
+    PostPersonSuccessAction,
+    RemovePersonAction,
 } from "../actions";
 import {
     ADD_PERSON,
@@ -18,11 +19,11 @@ import {
     PATCH_PERSON,
     patchPersonAction,
     patchPersonSuccessAction,
+    POST_PERSON,
+    POST_PERSON_SUCCESS,
+    postPersonAction,
+    postPersonSuccessAction,
     REMOVE_PERSON,
-    SAVE_PERSON,
-    SAVE_PERSON_SUCCESS,
-    savePersonAction,
-    savePersonSuccessAction,
     updatePersonAction,
 } from "../actions";
 import PersonService from "../../services/personService";
@@ -31,7 +32,7 @@ import ActionProcrastinator from "../util/actionProcrastinator";
 
 const apiMiddleware = (personService: PersonService) => (store: Store) => {
 
-    const actionPostponeManager = new ActionProcrastinator(store);
+    const actionProcrastinator = new ActionProcrastinator(store);
 
     return (next) => (action: Action) => {
 
@@ -41,18 +42,18 @@ const apiMiddleware = (personService: PersonService) => (store: Store) => {
 
             case ADD_PERSON: {
                 const person = _.last(store.getState().persons);
-                store.dispatch(savePersonAction(person));
+                store.dispatch(postPersonAction(person));
                 break;
             }
 
-            case SAVE_PERSON: {
-                const person = (action: SavePersonAction).person;
-                actionPostponeManager.put(person.uuid, personService.post(person), savePersonSuccessAction, 'person');
+            case POST_PERSON: {
+                const person = (action: PostPersonAction).person;
+                actionProcrastinator.put(person.uuid, personService.post(person), postPersonSuccessAction, 'person');
                 break;
             }
 
-            case SAVE_PERSON_SUCCESS: {
-                const person = (action: SavePersonSuccessAction).person;
+            case POST_PERSON_SUCCESS: {
+                const person = (action: PostPersonSuccessAction).person;
                 store.dispatch(updatePersonAction({ uuid: person.uuid, id: person.id }));
                 break;
             }
@@ -60,7 +61,7 @@ const apiMiddleware = (personService: PersonService) => (store: Store) => {
             case PATCH_PERSON: {
                 const person = (action: PatchPersonAction).person;
                 if (person.id === -1) {
-                    actionPostponeManager.pushAction(person.uuid, patchPersonAction(person));
+                    actionProcrastinator.pushAction(person.uuid, patchPersonAction(person));
                 } else {
                     personService.patch(person).subscribe(p => {
                         store.dispatch(patchPersonSuccessAction(p));
@@ -78,7 +79,7 @@ const apiMiddleware = (personService: PersonService) => (store: Store) => {
             case DELETE_PERSON: {
                 const person = (action: DeletePersonAction).person;
                 if (person.id === -1) {
-                    actionPostponeManager.pushAction(person.uuid, deletePersonAction(person));
+                    actionProcrastinator.pushAction(person.uuid, deletePersonAction(person));
                 } else {
                     personService.delete(person).subscribe(p => {
                         store.dispatch(deletePersonSuccessAction(p));

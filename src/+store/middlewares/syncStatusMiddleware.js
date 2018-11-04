@@ -5,8 +5,8 @@ import {
     DELETE_PERSON, DELETE_PERSON_SUCCESS,
     FETCH_PERSONS,
     FETCH_PERSONS_SUCCESS, PATCH_PERSON, PATCH_PERSON_SUCCESS,
-    SAVE_PERSON,
-    SAVE_PERSON_SUCCESS,
+    POST_PERSON,
+    POST_PERSON_SUCCESS,
     setSyncStatusAction,
 } from "../actions";
 import {debounceTime} from "rxjs/operators";
@@ -23,7 +23,7 @@ const syncStatusMiddleware = (store: Store) => {
         switch (action.type) {
 
             case FETCH_PERSONS:
-            case SAVE_PERSON:
+            case POST_PERSON:
             case PATCH_PERSON:
             case DELETE_PERSON:
                 store.dispatch(setSyncStatusAction(true));
@@ -31,7 +31,7 @@ const syncStatusMiddleware = (store: Store) => {
                 break;
 
             case FETCH_PERSONS_SUCCESS:
-            case SAVE_PERSON_SUCCESS:
+            case POST_PERSON_SUCCESS:
             case PATCH_PERSON_SUCCESS:
             case DELETE_PERSON_SUCCESS:
                 syncStatus.next(false);
