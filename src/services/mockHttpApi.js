@@ -9,7 +9,7 @@ export default class MockHttpApi {
     persons: Person[] = [];
 
     get = (url: string): Observable<Person[]> => {
-        const persons = this.persons.map(p => _.omit(p, 'uuid'));
+        const persons = this.persons.map(p => _.omit(p, 'uid'));
         console.info(
             '%c[GET]\t',
             'color:green;',
@@ -31,9 +31,9 @@ export default class MockHttpApi {
             '%c[DELETE]\t',
             'color:green;',
             'request:',
-            _.omit(person, ['uuid']),
+            _.omit(person, ['uid']),
             'response:',
-            _.omit(person, ['uuid'])
+            _.omit(person, ['uid'])
         );
         return of(person).pipe(delay(1000));
     };
@@ -48,11 +48,11 @@ export default class MockHttpApi {
                     '%c[POST]\t',
                     'color:green;',
                     'request:',
-                    _.omit(person, ['uuid']),
+                    _.omit(person, ['uid']),
                     'response:',
-                    _.omit(personWithNewId, ['uuid'])
+                    _.omit(personWithNewId, ['uid'])
                 );
-                observer.next(_.omit(personWithNewId, ['uuid']));
+                observer.next(_.omit(personWithNewId, ['uid']));
                 observer.complete();
             }, 2000)
         });
@@ -83,11 +83,11 @@ export default class MockHttpApi {
                     '%c[PATCH]\t',
                     'color:green;',
                     'request:',
-                    _.omit(updatePerson, ['uuid']),
+                    _.omit(updatePerson, ['uid']),
                     'response:',
-                    _.omit(updatePerson, ['uuid'])
+                    _.omit(updatePerson, ['uid'])
                 );
-                observer.next(_.omit(updatePerson, ['uuid']));
+                observer.next(_.omit(updatePerson, ['uid']));
                 observer.complete();
             }, 1000);
         });

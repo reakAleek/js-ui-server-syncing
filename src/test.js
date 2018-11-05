@@ -1,5 +1,5 @@
 import {delay, map, pluck, switchMap, toArray} from "rxjs/operators";
-import {forkJoin, Observable} from "rxjs";
+import {forkJoin, Observable, of} from "rxjs";
 import MockHttpApi from "./services/mockHttpApi";
 import PersonService from "./services/personService";
 import ActionProcrastinator from "./+store/util/actionProcrastinator";
@@ -10,13 +10,14 @@ import {
     POST_PERSON_SUCCESS,
     postPersonSuccessAction
 } from "./+store/actions";
+import type {Person} from "./+store/model";
 
 it('posting 2 persons with the id -1 should store 2 entities', (done) => {
     // Arrange
     const http = new MockHttpApi();
     const personService = new PersonService(http);
-    const a$ = personService.post({ uuid: 'uuid', id: -1, name: '' });
-    const b$ = personService.post({ uuid: 'uuid', id: -1, name: 'John' }).pipe(delay(250));
+    const a$ = personService.post({ uid: 'uid', id: -1, name: '' });
+    const b$ = personService.post({ uid: 'uid', id: -1, name: 'John' }).pipe(delay(250));
 
     // Act
     forkJoin(a$, b$).subscribe(() => {
@@ -50,16 +51,13 @@ it('updating a person entity with patch should update persons name with given id
 it('ActionProcrastinator without follow up actions should emit only initial action', (done) => {
     // Arrange
     const actionProcrastinator = new ActionProcrastinator();
-    const uuid = 'random-uuid';
-    const personObservable = Observable.create(observer => {
-        observer.next({id: 0, name: '' })
-    }).pipe(delay(500));
+    const uid = 'random-uid';
+    const personObservable$: Observable<Person> = of({id: 0, name: '' }).pipe(delay(500));
 
     // Act
-    actionProcrastinator.put(
-        uuid,
-        personObservable.pipe(map(person => postPersonSuccessAction({...person, uuid}))),
-        'person',
+    actionProcrastinator.create(
+        uid,
+        personObservable$.pipe(map(person => postPersonSuccessAction({...person, uid}))),
         'person.id'
     ).asObservable()
     .pipe(toArray())
@@ -75,17 +73,13 @@ it('ActionProcrastinator without follow up actions should emit only initial acti
 it('ActionProcrastinator with follow up actions should emit initial action and last pushed action', (done) => {
     // Arrange
     const actionProcrastinator = new ActionProcrastinator();
-    const uuid = 'random-uuid';
-
-    const personObservable$ = Observable.create(observer => {
-        observer.next({id: 0, name: '' })
-    }).pipe(delay(500));
+    const uid = 'random-uid';
+    const personObservable$: Observable<Person> = of({id: 0, name: '' }).pipe(delay(500));
 
     // Act
-    actionProcrastinator.put(
-        uuid,
-        personObservable$.pipe(map(person => postPersonSuccessAction({...person, uuid}))),
-        'person',
+    actionProcrastinator.create(
+        uid,
+        personObservable$.pipe(map(person => postPersonSuccessAction({...person, uid}))),
         'person.id'
     ).asObservable()
     .pipe(toArray())
@@ -100,6 +94,6 @@ it('ActionProcrastinator with follow up actions should emit initial action and l
         done();
     });
 
-    actionProcrastinator.pushAction(uuid, patchPersonAction({ id: -1, name: 'Jan'}));
-    actionProcrastinator.pushAction(uuid, deletePersonAction({ id: -1, name: 'Jan'}));
+    actionProcrastinator.pushAction(uid, patchPersonAction({ id: -1, name: 'Jan'}));
+    actionProcrastinator.pushAction(uid, deletePersonAction({ id: -1, name: 'Jan'}));
 });

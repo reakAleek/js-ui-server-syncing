@@ -48,7 +48,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 });
 
 const mapStateToProps = (state, ownProps) => ({
-    isLast: (state.persons.length-1) === _.findIndex(state.persons, ({uuid}) => ownProps.person.uuid === uuid)
+    isLast: (state.persons.length-1) === _.findIndex(state.persons, ({uid}) => ownProps.person.uid === uid)
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Person);

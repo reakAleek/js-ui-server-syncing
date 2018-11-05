@@ -1,7 +1,7 @@
 // @flow
 import {merge, Observable, Subject} from "rxjs";
 import {Action} from "redux";
-import type {Entity, UUID} from "../model";
+import type {Entity, UID} from "../model";
 import {buffer, filter, map, take, tap, withLatestFrom} from "rxjs/operators";
 import _ from "lodash";
 
@@ -21,10 +21,9 @@ export class ActionPostponeObject {
 
     constructor(
         observable$: Observable<Action>,
-        payloadPath: string = 'payload',
         mergeObjectPath: string = 'payload.id'
     ) {
-        this.followUpObservable = this._initFollowUpObservable(payloadPath, mergeObjectPath);
+        this.followUpObservable = this._initFollowUpObservable(mergeObjectPath);
         this.initialObservable$ = this._initObservable(observable$, mergeObjectPath);
     }
 
@@ -36,9 +35,8 @@ export class ActionPostponeObject {
     };
 
     _initFollowUpObservable = (
-        payloadPath: string,
         mergeObjectPath: string
-    ): Observable<Action> => {
+    ): Observable<Action | false> => {
         return this.actionSubject$.asObservable()
             .pipe(
                 buffer(this.buffer$),
@@ -72,47 +70,45 @@ export class ActionPostponeObject {
  * This class manages ActionPostponeObjects by storing them in a map.
  * Once the ActionPostponeObject is finished with its task, the entry
  * is deleted from the map again.
- * The UUID is used to assign follow-up actions to a specific running action.
+ * The UID is used to assign follow-up actions to a specific running action.
  */
 export class ActionProcrastinator {
 
-    _uuidMap: {[UUID]: ActionPostponeObject} = {};
+    _uidMap: {[UID]: ActionPostponeObject} = {};
 
-    put = (
-        uuid: UUID,
+    create = (
+        uid: UID,
         obs$: Observable<Entity>,
-        payloadPath: string = 'payload',
         mergeObjectPath: string = 'payload.id'
     ): ActionPostponeObject => {
-        this._uuidMap[uuid] = new ActionPostponeObject(
-            obs$.pipe(tap(() => { this._remove(uuid) })),
-            payloadPath,
+        this._uidMap[uid] = new ActionPostponeObject(
+            obs$.pipe(tap(() => { this._remove(uid) })),
             mergeObjectPath
         );
-        return this.get(uuid);
+        return this.get(uid);
     };
 
     pushAction = (
-        uuid: UUID,
+        uid: UID,
         action: Action
     ): void => {
-        if (this.hasUUID(uuid)) {
-            this.get(uuid).push(action);
+        if (this.hasUUID(uid)) {
+            this.get(uid).push(action);
         } else {
-            throw Error(`Cannot find ActionPostponeObject with the UUID: ${uuid}`);
+            throw Error(`Cannot find ActionPostponeObject with the UUID: ${uid}`);
         }
     };
 
-    hasUUID = (uuid: UUID): boolean => {
-        return uuid in this._uuidMap;
+    hasUUID = (uid: UID): boolean => {
+        return uid in this._uidMap;
     };
 
-    get = (uuid: UUID): ActionPostponeObject => {
-        return this._uuidMap[uuid];
+    get = (uid: UID): ActionPostponeObject => {
+        return this._uidMap[uid];
     };
 
-    _remove = (uuid: UUID): void => {
-        delete this._uuidMap[uuid];
+    _remove = (uid: UID): void => {
+        delete this._uidMap[uid];
     };
 }
 

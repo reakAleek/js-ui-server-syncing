@@ -49,12 +49,12 @@ const apiMiddleware = (personService: PersonService) => (store: Store) => {
 
             case POST_PERSON: {
                 const person = (action: PostPersonAction).person;
-                actionProcrastinator.put(
-                    person.uuid,
-                    personService.post(person).pipe(map(p => postPersonSuccessAction({...p, uuid: person.uuid }))),
-                    'person',
+                const actionPostpone$ = actionProcrastinator.create(
+                    person.uid,
+                    personService.post(person).pipe(map(p => postPersonSuccessAction({...p, uid: person.uid }))),
                     'person.id'
-                ).asObservable().subscribe(action => {
+                ).asObservable();
+                actionPostpone$.subscribe(action => {
                     store.dispatch(action);
                 });
                 break;
@@ -62,14 +62,14 @@ const apiMiddleware = (personService: PersonService) => (store: Store) => {
 
             case POST_PERSON_SUCCESS: {
                 const person = (action: PostPersonSuccessAction).person;
-                store.dispatch(updatePersonAction({ uuid: person.uuid, id: person.id }));
+                store.dispatch(updatePersonAction({ uid: person.uid, id: person.id }));
                 break;
             }
 
             case PATCH_PERSON: {
                 const person = (action: PatchPersonAction).person;
                 if (person.id === -1) {
-                    actionProcrastinator.pushAction(person.uuid, patchPersonAction(person));
+                    actionProcrastinator.pushAction(person.uid, patchPersonAction(person));
                 } else {
                     personService.patch(person).subscribe(p => {
                         store.dispatch(patchPersonSuccessAction(p));
@@ -87,7 +87,7 @@ const apiMiddleware = (personService: PersonService) => (store: Store) => {
             case DELETE_PERSON: {
                 const person = (action: DeletePersonAction).person;
                 if (person.id === -1) {
-                    actionProcrastinator.pushAction(person.uuid, deletePersonAction(person));
+                    actionProcrastinator.pushAction(person.uid, deletePersonAction(person));
                 } else {
                     personService.delete(person).subscribe(p => {
                         store.dispatch(deletePersonSuccessAction(p));

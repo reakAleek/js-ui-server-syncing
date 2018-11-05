@@ -8,7 +8,7 @@ import type {AppState} from "../+store/model";
 const PersonList = ({ persons }) => (
     <ul>
         {persons.map( (p) =>
-            <li key={p.uuid}><Person person={p}/></li>
+            <li key={p.uid}><Person person={p}/></li>
         )}
     </ul>
 );

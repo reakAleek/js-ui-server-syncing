@@ -1,8 +1,8 @@
 // @flow
 
-export type UUID = number;
+export type UID = number;
 
-export type Entity = { id: number, uuid: UUID };
+export type Entity = { id: number, uid: UID };
 export type Person = { name: string } & Entity;
 
 export type AppState = {

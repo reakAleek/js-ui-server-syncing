@@ -1,5 +1,4 @@
 // @flow
-import uuid from "uuid/v1";
 import {Action} from "redux";
 import type {AppState} from "./model";
 import {NOT_YET_PERSISTED} from "./model";
@@ -18,6 +17,7 @@ import {
     SET_SYNC_STATUS,
     UPDATE_PERSON
 } from "./actions";
+import _ from "lodash";
 
 const initialState: AppState = {
     isSyncing: false,
@@ -31,7 +31,7 @@ export const reducer = (state: AppState = initialState, action: Action) => {
         case FETCH_PERSONS_SUCCESS: {
             return {
                 ...state,
-                persons: (action: FetchPersonsSuccessAction).persons.map(p => ({ ...p, uuid: uuid()}))
+                persons: (action: FetchPersonsSuccessAction).persons.map(p => ({ ...p, uid: _.uniqueId('person_')}))
             };
         }
 
@@ -41,7 +41,7 @@ export const reducer = (state: AppState = initialState, action: Action) => {
                 ...state,
                 persons: state.persons
                     .map(oldPerson =>
-                        (newPerson.uuid === oldPerson.uuid)
+                        (newPerson.uid === oldPerson.uid)
                             ? {...oldPerson, id: newPerson.id }
                             : oldPerson
                     )
@@ -50,17 +50,17 @@ export const reducer = (state: AppState = initialState, action: Action) => {
 
         case REMOVE_PERSON: {
             const deletedPerson = (action: RemovePersonAction).person;
-            const uuid = deletedPerson.uuid;
+            const uid = deletedPerson.uid;
             return {
                 ...state,
-                persons: state.persons.filter(p => p.uuid !== uuid)
+                persons: state.persons.filter(p => p.uid !== uid)
             };
         }
 
         case ADD_PERSON: {
             return {
                 ...state,
-                persons: [...state.persons, { id: NOT_YET_PERSISTED, name: '', uuid: uuid()}]
+                persons: [...state.persons, { id: NOT_YET_PERSISTED, name: '', uid: _.uniqueId('person_') }]
             }
         }
 
@@ -69,7 +69,7 @@ export const reducer = (state: AppState = initialState, action: Action) => {
             return {
                 ...state,
                 persons: state.persons.map((person) => {
-                    return (updatePerson.uuid === person.uuid)
+                    return (updatePerson.uid === person.uid)
                         ? { ...person, ...updatePerson }
                         : person
                 })
